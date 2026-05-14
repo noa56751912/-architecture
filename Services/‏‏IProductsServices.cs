@@ -1,4 +1,4 @@
-﻿using Entities;
+using Entities;
 using DTOs;
 namespace Services
 {
@@ -7,5 +7,6 @@ namespace Services
         public Task<PageResponseDTO<ProductDTO>> GetProducts(int position, int skip, int?[] categoryIds,
           string? description, int? maxPrice, int? minPrice);
         public Task<IEnumerable<ProductDTO>> GetProducts();
+        public Task<ProductDTO?> GetProductById(int id);
     }
 }

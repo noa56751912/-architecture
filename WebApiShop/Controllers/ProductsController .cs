@@ -1,7 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Services;
 using DTOs;
-// For more information on enabling Web API for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
 
 namespace WebApiShop.Controllers
 {
@@ -10,6 +9,7 @@ namespace WebApiShop.Controllers
     public class ProductsController : ControllerBase
     {
         private readonly IProductsServices _IProductsServices;
+
         public ProductsController(IProductsServices productsServices)
         {
             _IProductsServices = productsServices;
@@ -34,7 +34,15 @@ namespace WebApiShop.Controllers
             if (products != null && products.Any())
                 return Ok(products);
             return NoContent();
+        }
 
+        [HttpGet("{id}")]
+        public async Task<ActionResult<ProductDTO>> GetById(int id)
+        {
+            ProductDTO? product = await _IProductsServices.GetProductById(id);
+            if (product == null)
+                return NotFound();
+            return Ok(product);
         }
 
     }

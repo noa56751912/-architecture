@@ -4,6 +4,7 @@ using Repositories;
 using Services;
 using WebApiShop.MiddleWare;
 using System.Text.Json.Serialization;
+using StackExchange.Redis;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -20,8 +21,11 @@ builder.Services.AddScoped<IOrdersServices, OrdersServices>();
 builder.Services.AddScoped<IRatingRepository, RatingRepository>();
 builder.Services.AddScoped<IRatingService, RatingService>();
 
+var redisConnectionString = builder.Configuration["Redis:ConnectionString"]!;
+builder.Services.AddSingleton<IConnectionMultiplexer>(ConnectionMultiplexer.Connect(redisConnectionString));
+
 builder.Host.UseNLog();
-builder.Services.AddDbContext<ApiShopContext>(option => option.UseSqlServer(builder.Configuration.GetConnectionString("Studies")));
+builder.Services.AddDbContext<ApiShopContext>(option => option.UseSqlServer(builder.Configuration.GetConnectionString("Home")));
 builder.Services.AddControllers()
     .AddJsonOptions(options =>
     {

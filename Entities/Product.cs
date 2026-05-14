@@ -17,9 +17,9 @@ public partial class Product
 
     public string Description { get; set; }
 
-    public string ImageUrl { get; set; }
+    public string? ImageUrl { get; set; }
 
-    public bool IsAvailable { get; set; }
+    public bool? IsAvailable { get; set; }
 
     public virtual Category Category { get; set; }
 
