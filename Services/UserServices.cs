@@ -10,30 +10,40 @@ namespace Services
         private readonly IUserRepository _repository;
         private readonly IPasswordServices _passwordServices;
         private readonly IMapper _mapper;
+        private readonly ITokenService _tokenService;
 
-        public UserServices(IUserRepository repository, IPasswordServices passwordServices, IMapper mapper)
+        public UserServices(IUserRepository repository, IPasswordServices passwordServices, IMapper mapper, ITokenService tokenService)
         {
             _repository = repository;
             _passwordServices = passwordServices;
             _mapper = mapper;
+            _tokenService = tokenService;
         }
 
         public async Task<UserDTO?> GetUserById(int id)
         {
             return _mapper.Map<User?, UserDTO?>(await _repository.GetUserById(id));
         }
-        public async Task<UserDTO?> Login(ExistingUserDTO existingUser)
+        public async Task<AuthResponseDTO?> Login(ExistingUserDTO existingUser)
         {
-            return _mapper.Map<User?, UserDTO?>(await _repository.Login(existingUser.Email, existingUser.Password));
+            UserDTO? userDto = _mapper.Map<User?, UserDTO?>(await _repository.Login(existingUser.Email, existingUser.Password));
+            if (userDto == null)
+                return null;
+            string token = _tokenService.CreateToken(userDto);
+            return new AuthResponseDTO(token, userDto);
         }
-        public async Task<UserDTO?> Register(PostUserDTO user)
+        public async Task<AuthResponseDTO?> Register(PostUserDTO user)
         {
             int passScore = _passwordServices.PasswordScore(user.Password);
             if (passScore < 2)
                 return null;
 
             User userEntity = _mapper.Map<User>(user);
-            return _mapper.Map<UserDTO>(await _repository.Register(userEntity));
+            UserDTO? userDto = _mapper.Map<UserDTO?>(await _repository.Register(userEntity));
+            if (userDto == null)
+                return null;
+            string token = _tokenService.CreateToken(userDto);
+            return new AuthResponseDTO(token, userDto);
         }
 
         public async Task<bool> Update(int id, PostUserDTO updateUser)

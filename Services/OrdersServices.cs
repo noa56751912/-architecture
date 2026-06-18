@@ -11,12 +11,14 @@ namespace Services
         private readonly IProductsRepository _products;
         private readonly IMapper _mapper;
         private readonly ILogger<OrdersServices> _logger;
-        public OrdersServices(IOrdersRepository orders, IProductsRepository products, IMapper mapper, ILogger<OrdersServices> logger)
+        private readonly IKafkaProducerService _kafka;
+        public OrdersServices(IOrdersRepository orders, IProductsRepository products, IMapper mapper, ILogger<OrdersServices> logger, IKafkaProducerService kafka)
         {
             _orders = orders;
             _products = products;
             _mapper = mapper;
             _logger = logger;
+            _kafka = kafka;
         }
 
         public async Task<OrderDTO?> GetOrderById(int id)
@@ -49,8 +51,20 @@ namespace Services
             );
 
            
-            Order placedOrder = await _orders.AddOrder(_mapper.Map<OrderDTO, Order>(orderWithCalculatedSum)); //
+            Order placedOrder = await _orders.AddOrder(_mapper.Map<OrderDTO, Order>(orderWithCalculatedSum));
             _logger.LogInformation($"Order Id {placedOrder.OrderId} placed successfully with sum: {calculatedSum}");
+
+            // Publish Kafka event with all transaction details.
+            var orderEvent = new OrderEventMessage
+            {
+                OrderId    = placedOrder.OrderId,
+                UserId     = placedOrder.UserId,
+                TotalSum   = calculatedSum,
+                OrderDate  = placedOrder.OrderDate,
+                ItemCount  = placedOrder.OrderItems?.Count ?? 0,
+                EventType  = "ORDER_PLACED"
+            };
+            await _kafka.PublishOrderEventAsync(orderEvent);
 
             return _mapper.Map<Order, OrderDTO>(placedOrder);
         }

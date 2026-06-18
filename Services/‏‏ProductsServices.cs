@@ -66,8 +66,30 @@ namespace Services
             return _mapper.Map<ProductDTO>(product);
         }
 
-        // Call this method from any function that modifies data in the database
-        // (such as Add, Update, or Delete) to keep the Redis cache in sync.
+        public async Task<ProductDTO> AddProduct(ProductDTO productDto)
+        {
+            var product = _mapper.Map<Product>(productDto);
+            var created = await _repository.AddProduct(product);
+            await ClearCache();
+            return _mapper.Map<ProductDTO>(created);
+        }
+
+        public async Task<ProductDTO?> UpdateProduct(ProductDTO productDto)
+        {
+            var product = _mapper.Map<Product>(productDto);
+            var updated = await _repository.UpdateProduct(product);
+            if (updated == null) return null;
+            await ClearCache();
+            return _mapper.Map<ProductDTO>(updated);
+        }
+
+        public async Task<bool> DeleteProduct(int id)
+        {
+            var deleted = await _repository.DeleteProduct(id);
+            if (deleted) await ClearCache();
+            return deleted;
+        }
+
         private async Task ClearCache()
         {
             await _redisDb.KeyDeleteAsync(CacheKey);

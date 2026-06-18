@@ -36,5 +36,35 @@ namespace Repositories
         {
             return await _context.Products.Include(product => product.Category).FirstOrDefaultAsync(p => p.ProductId == id);
         }
+
+        public async Task<Product> AddProduct(Product product)
+        {
+            _context.Products.Add(product);
+            await _context.SaveChangesAsync();
+            return product;
+        }
+
+        public async Task<Product?> UpdateProduct(Product product)
+        {
+            var existing = await _context.Products.FindAsync(product.ProductId);
+            if (existing == null) return null;
+            existing.ProductName = product.ProductName;
+            existing.Price = product.Price;
+            existing.CategoryId = product.CategoryId;
+            existing.Description = product.Description;
+            existing.ImageUrl = product.ImageUrl;
+            existing.IsAvailable = product.IsAvailable;
+            await _context.SaveChangesAsync();
+            return existing;
+        }
+
+        public async Task<bool> DeleteProduct(int id)
+        {
+            var existing = await _context.Products.FindAsync(id);
+            if (existing == null) return false;
+            _context.Products.Remove(existing);
+            await _context.SaveChangesAsync();
+            return true;
+        }
     }
 }

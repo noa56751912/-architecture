@@ -75,6 +75,7 @@ namespace TestProject
         private readonly Mock<IProductsRepository> _mockProductsRepository;
         private readonly Mock<IMapper> _mockMapper;
         private readonly Mock<ILogger<OrdersServices>> _mockLogger;
+        private readonly Mock<IKafkaProducerService> _mockKafka;
         private readonly OrdersServices _ordersServices;
 
         public OrderSumValidationTests()
@@ -83,11 +84,13 @@ namespace TestProject
             _mockProductsRepository = new Mock<IProductsRepository>();
             _mockMapper = new Mock<IMapper>();
             _mockLogger = new Mock<ILogger<OrdersServices>>();
+            _mockKafka = new Mock<IKafkaProducerService>();
             _ordersServices = new OrdersServices(
                 _mockOrdersRepository.Object,
                 _mockProductsRepository.Object,
                 _mockMapper.Object,
-                _mockLogger.Object);
+                _mockLogger.Object,
+                _mockKafka.Object);
         }
 
         [Fact]
