@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using Services;
 using AutoMapper;
 using DTOs;
@@ -8,6 +9,7 @@ namespace WebApiShop.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
+    [Authorize]
     public class OrdersController : ControllerBase
     {
         private readonly IOrdersServices _ordersServices;
@@ -26,7 +28,7 @@ namespace WebApiShop.Controllers
         }
 
         [HttpPost]
-       public async Task<ActionResult<OrderDTO>> Post([FromBody] OrderDTO newOrder)
+        public async Task<ActionResult<OrderDTO>> Post([FromBody] OrderDTO newOrder)
         {
             OrderDTO? placedOrder = await _ordersServices.AddOrder(newOrder);
             if (placedOrder == null)

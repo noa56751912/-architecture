@@ -1,6 +1,8 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using Services;
 using DTOs;
+using WebApiShop.Attributes;
 
 namespace WebApiShop.Controllers
 {
@@ -43,6 +45,36 @@ namespace WebApiShop.Controllers
             if (product == null)
                 return NotFound();
             return Ok(product);
+        }
+        
+        [HttpPost]
+        [AuthorizeRole("Admin")]
+        public async Task<ActionResult<ProductDTO>> Post([FromBody] ProductDTO productDto)
+        {
+            ProductDTO created = await _IProductsServices.AddProduct(productDto);
+            return CreatedAtAction(nameof(GetById), new { id = created.ProductId }, created);
+        }
+
+        [HttpPut("{id}")]
+        [AuthorizeRole("Admin")]
+        public async Task<ActionResult<ProductDTO>> Put(int id, [FromBody] ProductDTO productDto)
+        {
+            if (id != productDto.ProductId)
+                return BadRequest();
+            ProductDTO? updated = await _IProductsServices.UpdateProduct(productDto);
+            if (updated == null)
+                return NotFound();
+            return Ok(updated);
+        }
+
+        [HttpDelete("{id}")]
+        [AuthorizeRole("Admin")]
+        public async Task<ActionResult> Delete(int id)
+        {
+            bool deleted = await _IProductsServices.DeleteProduct(id);
+            if (!deleted)
+                return NotFound();
+            return NoContent();
         }
 
     }
