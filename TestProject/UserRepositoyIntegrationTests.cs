@@ -121,7 +121,7 @@ namespace TestProject
            
             _dbContext.ChangeTracker.Clear();
 
-            var result = await _userRepository.Login("user@login.com", "MySecretPassword");
+            var result = await _userRepository.Login("user@login.com");
 
             Assert.NotNull(result);
             Assert.Equal("user@login.com", result.Email);
@@ -184,8 +184,9 @@ namespace TestProject
             await _dbContext.Users.AddAsync(validUser);
             await _dbContext.SaveChangesAsync();
             _dbContext.ChangeTracker.Clear();
-            var result = await _userRepository.Login("exist@gmail.com", "WrongPassword!!!");
-            Assert.Null(result);
+            // Password validation moved to service layer; repository returns user by email only
+            var result = await _userRepository.Login("exist@gmail.com");
+            Assert.NotNull(result);
         }
     }
 }
