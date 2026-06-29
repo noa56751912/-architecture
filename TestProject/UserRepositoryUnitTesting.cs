@@ -92,7 +92,7 @@ namespace TestProject
             mockContext.Setup(x => x.Users).ReturnsDbSet(usersList);
 
             var repository = new UserRepository(mockContext.Object);
-            var result = await repository.Login("login@test.com", "Password123");
+            var result = await repository.Login("login@test.com");
             Assert.NotNull(result);
             Assert.Equal("login@test.com", result.Email);
 
@@ -160,8 +160,9 @@ namespace TestProject
 
             var repository = new UserRepository(mockContext.Object);
            
-            var result = await repository.Login("exist@gmail.com", "WrongPassword!!!");
-            Assert.Null(result);
+            // Password validation moved to service layer; repository returns user by email only
+            var result = await repository.Login("exist@gmail.com");
+            Assert.NotNull(result);
         }
     }
 }

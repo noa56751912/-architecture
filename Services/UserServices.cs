@@ -26,9 +26,10 @@ namespace Services
         }
         public async Task<AuthResponseDTO?> Login(ExistingUserDTO existingUser)
         {
-            UserDTO? userDto = _mapper.Map<User?, UserDTO?>(await _repository.Login(existingUser.Email, existingUser.Password));
-            if (userDto == null)
+            User? user = await _repository.Login(existingUser.Email);
+            if (user == null || !BCrypt.Net.BCrypt.Verify(existingUser.Password, user.Password))
                 return null;
+            UserDTO userDto = _mapper.Map<UserDTO>(user);
             string token = _tokenService.CreateToken(userDto);
             return new AuthResponseDTO(token, userDto);
         }
@@ -39,6 +40,7 @@ namespace Services
                 return null;
 
             User userEntity = _mapper.Map<User>(user);
+            userEntity.Password = BCrypt.Net.BCrypt.HashPassword(user.Password);
             UserDTO? userDto = _mapper.Map<UserDTO?>(await _repository.Register(userEntity));
             if (userDto == null)
                 return null;
@@ -53,6 +55,7 @@ namespace Services
                 return false;
             User user = _mapper.Map<User>(updateUser);
             user.UserId = id;
+            user.Password = BCrypt.Net.BCrypt.HashPassword(updateUser.Password);
             await _repository.Update(id, user);
             return true;
         }
